@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panou de Control</title>
+  <style>
+    /* General styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      font-size: 1.5rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Flash messages */
+    .flash-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+
+    .flash-message.success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .flash-message.danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    element {
+      width: 98%;
+      height: 116.067px;
+    }
+
+    .pinout-container {
+      width: 98%;
+      text-align: center;
+      margin: 26px auto;
+      padding: 9px;
+      background: #f9f9f9;
+      border: 8px solid #ccc;
+      border-radius: 6px;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Pin grid layout */
+    .pinout-grid {
+      display: grid;
+      grid-template-columns: repeat(20, 1fr);
+      gap: 5px;
+      padding: 10px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    /* Individual pin styling */
+    .pin {
+      width: 35px;
+      height: 35px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #e0e0e0;
+      font-size: 0.6rem;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    /* Active pins */
+    .pin.active {
+      background-color: #28a745;
+      color: white;
+      border-color: #28a745;
+    }
+
+    /* Table Styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 20px;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+    }
+
+    /* Scrollable Log Section */
+    .log-container {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+  </style>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var socket = io();
+      socket.on('rfid_update', function(data) {
+        console.log("RFID update received:", data);
+        window.location.reload();
+      });
+
+      // Toggle visibility of log sections
+      document.getElementById("toggleLogsBtn").addEventListener("click", function() {
+        var logs = document.getElementById("logs");
+        if (logs.style.display === "none") {
+          logs.style.display = "block";
+        } else {
+          logs.style.display = "none";
+        }
+      });
+
+      // Toggle visibility of users table
+      document.getElementById("toggleUsersBtn").addEventListener("click", function() {
+        var usersTable = document.getElementById("usersTable");
+        if (usersTable.style.display === "none") {
+          usersTable.style.display = "block";
+        } else {
+          usersTable.style.display = "none";
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <header>
+    <h1>Panou de Control</h1>
+    {% if current_user %}
+      <h2>Bine ai venit, {{ current_user['name'] }}!</h2>
+    {% endif %}
+  </header>
+
+  <div class="container">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-message {{ messages[0][0] }}">
+          {{ messages[0][1] }}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Graphical 40-Pin Layout -->
+    <h2>Reprezentare Placă Raspberry Pi 4B</h2>
+    <div class="pinout-container">
+      <!-- First Row: Pins 1 to 20 -->
+      <div class="pinout-grid">
+        {% for pin in range(1, 21) %}
+          <div class="pin {% if pin_statuses[pin] == 'Activat' %}active{% endif %}">
+            <span>Pin {{ pin }}<br>GPIO{{ pin }}</span>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Second Row: Pins 21 to 40 -->
+      <div class="pinout-grid">
+        {% for pin in range(21, 41) %}
+          <div class="pin {% if pin_statuses[pin] == 'Activat' %}active{% endif %}">
+            <span>Pin {{ pin }}<br>GPIO{{ pin }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Button to toggle logs visibility -->
+    <button id="toggleLogsBtn">Ascunde/Afișează Log-urile</button>
+
+    <!-- Button to toggle users table visibility -->
+    <button id="toggleUsersBtn">Ascunde/Afișează Utilizatorii</button>
+
+    <!-- Users Table -->
+  <div id="usersTable">
+    <h2>Lista Utilizatorilor</h2>
+    {% if users %}
+      <table >
+        <tr>
+          <th>Nr. Crt.</th>
+          <th>Nume</th>
+          <th>Tag ID</th>
+          <th>Pin GPIO</th>
+          <th>Status Pin</th>
+        </tr>
+        {% for user in users %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
+            <td>{{ user[3] }}</td>
+            <td>{{ pin_statuses[user[3]] }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>Nu există utilizatori înregistrați.</p>
+    {% endif %}
+  </div>
+   
+
+    <!-- Log Section -->
+    <div id="logs" class="log-container">
+      <!-- Access Log Table -->
+      <h2>Log de Acces</h2>
+      {% if access_log %}
+        <table>
+          <tr>
+            <th>ID Tag</th>
+            <th>Pin GPIO</th>
+            <th>Timestamp</th>
+          </tr>
+          {% for log in access_log %}
+            <tr>
+              <td>{{ log[1] }}</td>
+              <td>{{ log[2] }}</td>
+              <td>{{ log[3] }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p>Nu există log-uri de acces.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Sistem RFID</p>
+  </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+ * Serving Flask app 'rfid_reader'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:3000
+ * Running on http://127.0.0.1:3000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [11/Mar/2025 14:39:55] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [11/Mar/2025 14:39:58] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [11/Mar/2025 14:39:59] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [11/Mar/2025 14:40:01] "GET /login HTTP/1.1" 200 -
+/home/Tp/HSproject/rfid_reader.py:121: RuntimeWarning: No channels have been set up yet - nothing to clean up!  Try cleaning up at the end of your program instead!
+  GPIO.cleanup()
+[2025-03-11 14:40:03,912] ERROR in app: Exception on /login [POST]
+Traceback (most recent call last):
+  File "/home/Tp/HSproject/env/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/Tp/HSproject/env/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/Tp/HSproject/env/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/Tp/HSproject/env/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/Tp/HSproject/rfid_reader.py", line 96, in login
+    user = get_user_by_tag(id)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/Tp/HSproject/rfid_reader.py", line 37, in get_user_by_tag
+    c.execute("SELECT * FROM users WHERE tag_id = ?", (tag_id,))
+sqlite3.OperationalError: no such table: users
+127.0.0.1 - - [11/Mar/2025 14:40:03] "[35m[1mPOST /login HTTP/1.1[0m" 500 -
+ * Serving Flask app 'rfid_reader'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:3000
+ * Running on http://127.0.0.1:3000
+[33mPress CTRL+C to quit[0m
+192.168.70.14 - - [11/Mar/2025 14:43:33] "GET /register HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:43:35] "GET / HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:43:37] "GET /login HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:43:39] "GET / HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:43:40] "GET /register HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:44:03] "GET /login HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:45:07] "GET / HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:45:08] "GET /login HTTP/1.1" 200 -
+192.168.70.14 - - [11/Mar/2025 14:45:09] "GET /register HTTP/1.1" 200 -
