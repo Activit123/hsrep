@@ -8,6 +8,7 @@ import threading
 import time
 import atexit
 
+
 app = Flask(__name__)
 app.secret_key = 'parola'
 socketio = SocketIO(app)
@@ -65,6 +66,8 @@ def rfid_listener():
                     c.execute("INSERT INTO access_log (tag_id, gpio_pin) VALUES (?, ?)", (card_id, 17))
                     conn.commit()
                     print("Activated GPIO 17 for RFID 1")
+                    
+
             elif scanned == "839647038315":
                 if active_pin != 27:
                     if active_pin:
@@ -76,6 +79,7 @@ def rfid_listener():
                     print("Activated GPIO 27 for RFID 2")
             else:
                 print("Unrecognized RFID:", scanned)
+                c.execute("INSERT INTO access_log (tag_id, gpio_pin) VALUES (?, ?)", (card_id, 0))
             # Emit the new active pin to all connected clients
             socketio.emit('rfid_update', {'active_pin': active_pin})
         except Exception as e:
@@ -188,4 +192,5 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=3070)
+    socketio.run(app, host='0.0.0.0', port=3080, allow_unsafe_werkzeug=True)
+

@@ -1,34 +1,28 @@
-# Use the official Python image from Docker Hub
+# Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Set the working directory inside the container
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements.txt file to the container
-COPY requirements.txt /app/
+# Install system dependencies required for compilation
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
+    build-essential \
+    python3-rpi.gpio \
+    i2c-tools \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install the Python dependencies
+# Copy the application files into the container
+COPY . .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project into the container
-COPY . /app/
+# Expose the necessary port
+EXPOSE 3070
 
-# Set environment variables for Flask (optional)
-ENV FLASK_APP=rfid_reader.py
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_RUN_PORT=3030
-
-# Expose the port the app will run on
-EXPOSE 3030
-
-# Create a script that will run both scripts
-RUN echo '#!/bin/bash\n\
-python /app/creare.py &\n\
-python /app/rfid_reader.py &\n\
-wait' > /app/start.sh
-
-# Make the start script executable
-RUN chmod +x /app/start.sh
-
-# Run the start script
-CMD ["/app/start.sh"]
+# Define the command to run the application
+CMD ["python", "rfid_reader.py"]
