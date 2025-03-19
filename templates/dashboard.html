@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ro">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,14 +13,12 @@
       background-color: #f4f4f4;
       text-align: center;
     }
-
     header {
       background: #007bff;
       color: white;
       padding: 15px;
       font-size: 1.5rem;
     }
-
     .container {
       max-width: 900px;
       margin: 0 auto;
@@ -31,29 +28,21 @@
       border-radius: 10px;
       box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
     }
-
     /* Flash messages */
     .flash-message {
       padding: 10px;
       margin: 10px 0;
       border-radius: 5px;
     }
-
     .flash-message.success {
       background-color: #28a745;
       color: white;
     }
-
     .flash-message.danger {
       background-color: #dc3545;
       color: white;
     }
-
-    element {
-      width: 98%;
-      height: 116.067px;
-    }
-
+    /* Pinout container */
     .pinout-container {
       width: 98%;
       text-align: center;
@@ -65,7 +54,6 @@
       flex-direction: column;
       align-items: center;
     }
-
     /* Pin grid layout */
     .pinout-grid {
       display: grid;
@@ -75,7 +63,6 @@
       width: 100%;
       max-width: 800px;
     }
-
     /* Individual pin styling */
     .pin {
       width: 35px;
@@ -90,36 +77,46 @@
       text-align: center;
       line-height: 1.1;
     }
-
     /* Active pins */
     .pin.active {
       background-color: #28a745;
       color: white;
       border-color: #28a745;
     }
-
     /* Table Styling */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
     }
-
-    th,
-    td {
+    th, td {
       border: 1px solid #ddd;
       padding: 8px;
     }
-
     th {
       background: #007bff;
       color: white;
     }
-
     tr:nth-child(even) {
       background: #f9f9f9;
     }
-
+    /* Motor control styling */
+    .motor-controls {
+      margin-top: 20px;
+    }
+    .motor-controls button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    .motor-controls button:active {
+      background-color: #0056b3;
+    }
     /* Footer */
     footer {
       margin-top: 20px;
@@ -127,7 +124,6 @@
       background: #007bff;
       color: white;
     }
-
     /* Scrollable Log Section */
     .log-container {
       max-height: 300px;
@@ -137,39 +133,51 @@
       padding: 10px;
     }
   </style>
-
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       var socket = io();
+
+      // Listen for RFID updates
       socket.on('rfid_update', function(data) {
-        console.log("RFID update received:", data);
-        window.location.reload();
+         console.log("RFID update received:", data);
+         // Optionally update the interface without full reload:
+         // For this example, we reload the page.
+         window.location.reload();
       });
 
-      // Toggle visibility of log sections
+      // Motor control button event listeners:
+      var forwardBtn = document.getElementById('forwardBtn');
+      var reverseBtn = document.getElementById('reverseBtn');
+
+      forwardBtn.addEventListener('mousedown', function() {
+        socket.emit('motor_forward', {});
+      });
+      forwardBtn.addEventListener('mouseup', function() {
+        socket.emit('motor_stop', {});
+      });
+
+      reverseBtn.addEventListener('mousedown', function() {
+        socket.emit('motor_reverse', {});
+      });
+      reverseBtn.addEventListener('mouseup', function() {
+        socket.emit('motor_stop', {});
+      });
+
+      // Toggle visibility for logs
       document.getElementById("toggleLogsBtn").addEventListener("click", function() {
         var logs = document.getElementById("logs");
-        if (logs.style.display === "none") {
-          logs.style.display = "block";
-        } else {
-          logs.style.display = "none";
-        }
+        logs.style.display = (logs.style.display === "none") ? "block" : "none";
       });
 
-      // Toggle visibility of users table
+      // Toggle visibility for users table
       document.getElementById("toggleUsersBtn").addEventListener("click", function() {
         var usersTable = document.getElementById("usersTable");
-        if (usersTable.style.display === "none") {
-          usersTable.style.display = "block";
-        } else {
-          usersTable.style.display = "none";
-        }
+        usersTable.style.display = (usersTable.style.display === "none") ? "block" : "none";
       });
     });
   </script>
 </head>
-
 <body>
   <header>
     <h1>Panou de Control</h1>
@@ -188,8 +196,12 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Graphical 40-Pin Layout -->
+    <!-- SPI Frequency Display -->
     <h2>Reprezentare Placă Raspberry Pi 4B</h2>
+    <p>Frecvența SPI configurată: {{ configured_spi_frequency }} Hz</p>
+    <p>Frecvența SPI măsurată: {{ measured_spi_frequency|round(0, 'common') }} Hz</p>
+
+    <!-- Graphical 40-Pin Layout -->
     <div class="pinout-container">
       <!-- First Row: Pins 1 to 20 -->
       <div class="pinout-grid">
@@ -199,7 +211,6 @@
           </div>
         {% endfor %}
       </div>
-
       <!-- Second Row: Pins 21 to 40 -->
       <div class="pinout-grid">
         {% for pin in range(21, 41) %}
@@ -210,6 +221,12 @@
       </div>
     </div>
 
+    <!-- Motor Control Buttons -->
+    <div class="motor-controls">
+      <button id="forwardBtn">Forward</button>
+      <button id="reverseBtn">Reverse</button>
+    </div>
+
     <!-- Button to toggle logs visibility -->
     <button id="toggleLogsBtn">Ascunde/Afișează Log-urile</button>
 
@@ -217,36 +234,34 @@
     <button id="toggleUsersBtn">Ascunde/Afișează Utilizatorii</button>
 
     <!-- Users Table -->
-  <div id="usersTable">
-    <h2>Lista Utilizatorilor</h2>
-    {% if users %}
-      <table >
-        <tr>
-          <th>Nr. Crt.</th>
-          <th>Nume</th>
-          <th>Tag ID</th>
-          <th>Pin GPIO</th>
-          <th>Status Pin</th>
-        </tr>
-        {% for user in users %}
+    <div id="usersTable">
+      <h2>Lista Utilizatorilor</h2>
+      {% if users %}
+        <table>
           <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ user[1] }}</td>
-            <td>{{ user[2] }}</td>
-            <td>{{ user[3] }}</td>
-            <td>{{ pin_statuses[user[3]] }}</td>
+            <th>Nr. Crt.</th>
+            <th>Nume</th>
+            <th>Tag ID</th>
+            <th>Pin GPIO</th>
+            <th>Status Pin</th>
           </tr>
-        {% endfor %}
-      </table>
-    {% else %}
-      <p>Nu există utilizatori înregistrați.</p>
-    {% endif %}
-  </div>
-   
+          {% for user in users %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ user[1] }}</td>
+              <td>{{ user[2] }}</td>
+              <td>{{ user[3] }}</td>
+              <td>{{ pin_statuses[user[3]] }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p>Nu există utilizatori înregistrați.</p>
+      {% endif %}
+    </div>
 
     <!-- Log Section -->
     <div id="logs" class="log-container">
-      <!-- Access Log Table -->
       <h2>Log de Acces</h2>
       {% if access_log %}
         <table>
@@ -272,7 +287,5 @@
   <footer>
     <p>&copy; 2025 Sistem RFID</p>
   </footer>
-
 </body>
-
 </html>
